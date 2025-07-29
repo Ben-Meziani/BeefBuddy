@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Security\EmailVerifier;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,7 +25,13 @@ final class RegistrationController extends AbstractController
     public function __construct(private EmailVerifier $emailVerifier) {}
 
     #[Route('/register', name: 'app_registration', methods: ['POST'])]
-    public function index(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, Security $security): JsonResponse
+    public function index(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserPasswordHasherInterface $passwordHasher,
+        Security $security,
+        JWTTokenManagerInterface $jwtManager
+    ): JsonResponse
     {
         try {
             $data = json_decode($request->getContent(), true);
@@ -43,7 +50,8 @@ final class RegistrationController extends AbstractController
 
             // actually executes the queries (i.e. the INSERT query)
             $entityManager->flush();
-
+            $token = $jwtManager->create($user);
+            $url = $_ENV['HOST_FRONT'] . '/login?token=' . $token;
             $this->emailVerifier->sendEmailConfirmation(
                 'app_verify_email',
                 $user,
@@ -52,8 +60,12 @@ final class RegistrationController extends AbstractController
                     ->to($user->getEmail())
                     ->subject('Please Confirm your Email')
                     ->htmlTemplate('registration/confirmation_email.html.twig')
+                    ->context([
+                        'confirmationUrl' => $url, // 👈 ajout de l'URL dans le contexte Twig
+                        'user' => $user, // facultatif mais souvent utile
+                    ])
             );
-            $security->login($user, AppCustomAuthenticator::class, 'main');
+            // $security->login($user, AppCustomAuthenticator::class, 'main');
             return new JsonResponse(['message' => 'Registration successful. Please check your email to verify your account.'], 200);
         } catch (\Exception $e) {
             $message = $e->getMessage();
