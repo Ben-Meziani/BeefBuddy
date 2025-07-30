@@ -36,7 +36,12 @@ class ResetPasswordController extends AbstractController
             'email' => $data['email'],
         ]);
         if ($user) {
-            $token = $jwtManager->create($user);
+            $payload = [
+                'email' => $user->getEmail(),
+                'reset_password' => true,
+                'exp' => (new \DateTimeImmutable('+10 minutes'))->getTimestamp(),
+            ];
+            $token = $jwtManager->createFromPayload($user, $payload);
             $url = $_ENV['HOST_FRONT'] . '/reset-password-form?token=' . $token;
             $this->emailVerifier->sendEmailConfirmation(
                 'app_verify_email',
@@ -63,41 +68,46 @@ class ResetPasswordController extends AbstractController
         Request $request,
         JWTEncoderInterface $jwtEncoder,
         UserPasswordHasherInterface $passwordHasher,
-        ): JsonResponse
-    {
+    ): JsonResponse {
         $data = json_decode($request->getContent(), true);
-        $authHeader = $request->headers->get('Authorization');
-
-        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            return new JsonResponse(['error' => 'Token manquant ou invalide'], 400);
+        // dd($request->headers->all());
+        // Récupération du token depuis l'en-tête personnalisé
+        $token = $request->headers->get('X-Reset-Token');
+        // dd($token);
+        if (!$token) {
+            return new JsonResponse(['error' => 'Token manquant'], 400);
         }
-
-        $token = str_replace('Bearer ', '', $authHeader);
 
         try {
             $decoded = $jwtEncoder->decode($token);
-
-            $user = $this->entityManager->getRepository(User::class)->find($decoded['id']);
-            if (!$user) {
-                throw $this->createNotFoundException(
-                    'No product found for id '.$decoded['id']
-                );
+            // Vérification de l'expiration du token
+            if (!isset($decoded['exp']) || time() > $decoded['exp']) {
+                return new JsonResponse(['error' => 'Token expiré'], 401);
             }
-            $hashedPassword = $passwordHasher->hashPassword(
-                $user,
-                $data['password']
-            );
+            // Vérification de l'intention du token
+            if (!isset($decoded['reset_password']) || $decoded['reset_password'] !== true) {
+                return new JsonResponse(['error' => 'Token invalide pour cette action'], 400);
+            }
+
+            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decoded['email']]);
+
+            if (!$user) {
+                return new JsonResponse(['error' => 'Utilisateur introuvable'], 404);
+            }
+
+            if (empty($data['password'])) {
+                return new JsonResponse(['error' => 'Mot de passe manquant'], 400);
+            }
+
+            $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
             $user->setPassword($hashedPassword);
 
             $this->entityManager->flush();
 
-            return new JsonResponse(['success' => true, 'message' => 'Password reset successful']);
+            return new JsonResponse(['success' => true, 'message' => 'Mot de passe réinitialisé avec succès']);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Token invalide : ' . $e->getMessage()], 401);
         }
-        return new JsonResponse([
-            'success' => true,
-            'message' => 'Password reset successful'
-        ]);
     }
+
 }
