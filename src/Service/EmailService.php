@@ -26,7 +26,7 @@ class EmailService
             'app_verify_email',
             $user,
             (new TemplatedEmail())
-                ->from(new Address('mailer@example.com', 'AcmeMailBot'))
+                ->from(new Address($_ENV['MAIL_FROM'], $_ENV['MAIL_FROM_NAME']))
                 ->to($user->getEmail())
                 ->subject($subject)
                 ->htmlTemplate($template)
