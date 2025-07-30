@@ -97,7 +97,7 @@ final class RegistrationController extends AbstractController
         // validate email confirmation link, sets User::isVerified=true and persists
         try {
             $this->emailVerifier->handleEmailConfirmation($request, $user);
-            return new RedirectResponse('http://localhost:5173/login');
+            return new RedirectResponse($_ENV['HOST_FRONT'] . '/login');
         } catch (VerifyEmailExceptionInterface $exception) {
             return new JsonResponse(['error' => $translator->trans($exception->getReason(), [], 'VerifyEmailBundle')], 400);
         }
