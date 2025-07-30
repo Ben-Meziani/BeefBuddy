@@ -36,11 +36,16 @@ class ResetPasswordService
             $token = $this->jwtManager->createFromPayload($user, $payload);
             $url = $_ENV['HOST_FRONT'] . '/reset-password-form?token=' . $token;
 
-            $this->emailService->sendEmail($user, $url, 'Reset your password', 'reset_password/email.html.twig', [
-                'resetPasswordUrl' => $url,
-                'user' => $user,
-            ]);
-            }
+            $this->emailService->sendEmail(
+                $user,
+                'Reset your password',
+                'reset_password/email.html.twig',
+                [
+                    'resetPasswordUrl' => $url,
+                    'user' => $user,
+                ]
+            );
+        }
         return new JsonResponse([
             'token' => $token,
             'success' => true,

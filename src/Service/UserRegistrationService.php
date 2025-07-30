@@ -37,10 +37,15 @@ class UserRegistrationService
         $this->entityManager->flush();
         $token = $this->jwtManager->create($user);
         $url = $_ENV['HOST_FRONT'] . '/login?token=' . $token;
-        $this->emailService->sendEmail($user, $url, 'Please Confirm your Email', 'registration/confirmation_email.html.twig', [
+        $this->emailService->sendEmail(
+            $user,
+            'Please Confirm your Email',
+            'registration/confirmation_email.html.twig',
+            [
             'confirmationUrl' => $url,
             'user' => $user,
-        ]);
+            ]
+        );
         return new JsonResponse(['message' => 'Registration successful. Please check your email to verify your account.'], 200);
     }
 }

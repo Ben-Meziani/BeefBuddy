@@ -20,7 +20,11 @@ class EmailService
 
     }
 
-    public function sendEmail(User $user, string $url, string $subject, string $template, array $context)
+    public function sendEmail(
+        User $user,
+        string $subject,
+        string $template,
+        array $context): void
     {
         $this->emailVerifier->sendEmailConfirmation(
             'app_verify_email',
