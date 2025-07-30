@@ -17,6 +17,7 @@ use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mime\Address;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
 
@@ -29,7 +30,6 @@ final class RegistrationController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher,
-        Security $security,
         JWTTokenManagerInterface $jwtManager
     ): JsonResponse
     {
@@ -65,7 +65,6 @@ final class RegistrationController extends AbstractController
                         'user' => $user, // facultatif mais souvent utile
                     ])
             );
-            // $security->login($user, AppCustomAuthenticator::class, 'main');
             return new JsonResponse(['message' => 'Registration successful. Please check your email to verify your account.'], 200);
         } catch (\Exception $e) {
             $message = $e->getMessage();
