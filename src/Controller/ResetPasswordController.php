@@ -58,6 +58,7 @@ class ResetPasswordController extends AbstractController
             );
             }
         return new JsonResponse([
+            'token' => $token,
             'success' => true,
             'message' => 'If an account with this email exists, you will receive an email to reset your password.'
         ]);
@@ -70,10 +71,7 @@ class ResetPasswordController extends AbstractController
         UserPasswordHasherInterface $passwordHasher,
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
-        // dd($request->headers->all());
-        // Récupération du token depuis l'en-tête personnalisé
         $token = $request->headers->get('X-Reset-Token');
-        // dd($token);
         if (!$token) {
             return new JsonResponse(['error' => 'Token manquant'], 400);
         }
