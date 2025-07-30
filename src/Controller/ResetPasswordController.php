@@ -2,19 +2,13 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
-use App\Security\EmailVerifier;
 use App\Service\EmailService;
+use App\Service\ResetPasswordService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\Mime\Address;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 // #[Route('/reset-password')]
 
@@ -23,78 +17,28 @@ class ResetPasswordController extends AbstractController
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private EmailService $emailService
+        private EmailService $emailService,
+        private ResetPasswordService $resetPasswordService
     ) {}
 
     #[Route('/reset-password', name: 'app_reset_password', methods: ['POST'])]
-    public function resetPassword(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    public function resetPassword(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $user = $this->entityManager->getRepository(User::class)->findOneBy([
-            'email' => $data['email'],
-        ]);
-        if ($user) {
-            $payload = [
-                'email' => $user->getEmail(),
-                'reset_password' => true,
-                'exp' => (new \DateTimeImmutable('+10 minutes'))->getTimestamp(),
-            ];
-            $token = $jwtManager->createFromPayload($user, $payload);
-            $url = $_ENV['HOST_FRONT'] . '/reset-password-form?token=' . $token;
-
-            $this->emailService->sendEmail($user, $url, 'Reset your password', 'reset_password/email.html.twig', [
-                'resetPasswordUrl' => $url,
-                'user' => $user,
-            ]);
-            }
-        return new JsonResponse([
-            'token' => $token,
-            'success' => true,
-            'message' => 'If an account with this email exists, you will receive an email to reset your password.'
-        ]);
+        try {
+            return $this->resetPasswordService->resetPassword($request);
+        }catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Erreur interne.'], 500);
+        }
     }
 
     #[Route('/reset-password-form', name: 'app_reset_password_form', methods: ['POST'])]
     public function resetPasswordForm(
-        Request $request,
-        JWTEncoderInterface $jwtEncoder,
-        UserPasswordHasherInterface $passwordHasher,
+        Request $request
     ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
-        $token = $request->headers->get('X-Reset-Token');
-        if (!$token) {
-            return new JsonResponse(['error' => 'Token manquant'], 400);
-        }
-
         try {
-            $decoded = $jwtEncoder->decode($token);
-            // Vérification de l'expiration du token
-            if (!isset($decoded['exp']) || time() > $decoded['exp']) {
-                return new JsonResponse(['error' => 'Token expiré'], 401);
-            }
-            // Vérification de l'intention du token
-            if (!isset($decoded['reset_password']) || $decoded['reset_password'] !== true) {
-                return new JsonResponse(['error' => 'Token invalide pour cette action'], 400);
-            }
-
-            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $decoded['email']]);
-
-            if (!$user) {
-                return new JsonResponse(['error' => 'Utilisateur introuvable'], 404);
-            }
-
-            if (empty($data['password'])) {
-                return new JsonResponse(['error' => 'Mot de passe manquant'], 400);
-            }
-
-            $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
-            $user->setPassword($hashedPassword);
-
-            $this->entityManager->flush();
-
-            return new JsonResponse(['success' => true, 'message' => 'Mot de passe réinitialisé avec succès']);
+            return $this->resetPasswordService->resetPasswordForm($request);
         } catch (\Exception $e) {
-            return new JsonResponse(['error' => 'Token invalide : ' . $e->getMessage()], 401);
+            return new JsonResponse(['error' => 'Erreur interne.'], 500);
         }
     }
 
