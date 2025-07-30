@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Security\EmailVerifier;
+use App\Service\EmailService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,11 +23,8 @@ class ResetPasswordController extends AbstractController
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private EmailVerifier $emailVerifier
-    ) {
-        $this->entityManager = $entityManager;
-        $this->emailVerifier = $emailVerifier;
-    }
+        private EmailService $emailService
+    ) {}
 
     #[Route('/reset-password', name: 'app_reset_password', methods: ['POST'])]
     public function resetPassword(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
@@ -43,19 +41,11 @@ class ResetPasswordController extends AbstractController
             ];
             $token = $jwtManager->createFromPayload($user, $payload);
             $url = $_ENV['HOST_FRONT'] . '/reset-password-form?token=' . $token;
-            $this->emailVerifier->sendEmailConfirmation(
-                'app_verify_email',
-                $user,
-                (new TemplatedEmail())
-                    ->from(new Address('mailer@example.com', 'AcmeMailBot'))
-                    ->to($user->getEmail())
-                    ->subject('Reset your password')
-                    ->htmlTemplate('reset_password/email.html.twig')
-                    ->context([
-                        'resetPasswordUrl' => $url, // 👈 ajout de l'URL dans le contexte Twig
-                        'user' => $user, // facultatif mais souvent utile
-                    ])
-            );
+
+            $this->emailService->sendEmail($user, $url, 'Reset your password', 'reset_password/email.html.twig', [
+                'resetPasswordUrl' => $url,
+                'user' => $user,
+            ]);
             }
         return new JsonResponse([
             'token' => $token,

@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Security\EmailVerifier;
+use App\Service\EmailService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -23,7 +24,9 @@ use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
 
 final class RegistrationController extends AbstractController
 {
-    public function __construct(private EmailVerifier $emailVerifier) {}
+    public function __construct(
+        private EmailService $emailService
+    ) {}
 
     #[Route('/register', name: 'app_registration', methods: ['POST'])]
     public function index(
@@ -52,19 +55,10 @@ final class RegistrationController extends AbstractController
             $entityManager->flush();
             $token = $jwtManager->create($user);
             $url = $_ENV['HOST_FRONT'] . '/login?token=' . $token;
-            $this->emailVerifier->sendEmailConfirmation(
-                'app_verify_email',
-                $user,
-                (new TemplatedEmail())
-                    ->from(new Address('mailer@example.com', 'AcmeMailBot'))
-                    ->to($user->getEmail())
-                    ->subject('Please Confirm your Email')
-                    ->htmlTemplate('registration/confirmation_email.html.twig')
-                    ->context([
-                        'confirmationUrl' => $url, // 👈 ajout de l'URL dans le contexte Twig
-                        'user' => $user, // facultatif mais souvent utile
-                    ])
-            );
+            $this->emailService->sendEmail($user, $url, 'Please Confirm your Email', 'registration/confirmation_email.html.twig', [
+                'confirmationUrl' => $url,
+                'user' => $user,
+            ]);
             return new JsonResponse(['message' => 'Registration successful. Please check your email to verify your account.'], 200);
         } catch (\Exception $e) {
             $message = $e->getMessage();
@@ -79,6 +73,8 @@ final class RegistrationController extends AbstractController
             return new JsonResponse(['error' => 'Registration failed: ' . $e->getMessage()], 500);
         }
     }
+
+    //TODO: Remove if not needed
     #[Route('/verify/email', name: 'app_verify_email')]
     public function verifyUserEmail(
         Request $request,
@@ -88,14 +84,13 @@ final class RegistrationController extends AbstractController
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         // Get the user from the signed URL parameters
         $user = $this->getUser();
-        // dd($user);
         if (!$user) {
             return new JsonResponse(['error' => 'User not found'], 404);
         }
 
         // validate email confirmation link, sets User::isVerified=true and persists
         try {
-            $this->emailVerifier->handleEmailConfirmation($request, $user);
+            $this->emailService->handleEmailConfirmation($request, $user);
             return new RedirectResponse($_ENV['HOST_FRONT'] . '/login');
         } catch (VerifyEmailExceptionInterface $exception) {
             return new JsonResponse(['error' => $translator->trans($exception->getReason(), [], 'VerifyEmailBundle')], 400);
