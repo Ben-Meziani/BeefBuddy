@@ -2,40 +2,27 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\HomeService;
 
 final class HomeController extends AbstractController
 {
+    public function __construct(
+        private HomeService $homeService
+    ) {}
+
     #[Route('/home', name: 'app_home')]
     public function index(
-        Request $request,
-        JWTEncoderInterface $jwtEncoder,
-        EntityManagerInterface $entityManager
+        Request $request
     ): JsonResponse
     {
-        // $token = $request->headers->get('Autorisation');
-        $authHeader = $request->headers->get('Authorization');
-        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            return new JsonResponse(['error' => 'Token manquant ou invalide'], 400);
+        try {
+            return $this->homeService->index($request);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
         }
-        $token = str_replace('Bearer ', '', $authHeader);
-        $decoded = $jwtEncoder->decode($token);
-        $user = $entityManager->getRepository(User::class)->find($decoded['id']);
-        if (!$user) {
-            return $this->json([
-                'user' => 'guest',
-            ]);
-        }
-
-        return $this->json([
-            'user' => $user->getUsername(),
-            'roles' => $user->getRoles(),
-        ]);
     }
 }
