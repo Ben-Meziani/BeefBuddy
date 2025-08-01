@@ -33,7 +33,7 @@ class UserController extends AbstractController
     public function delete($id)
     {
         try{
-            return $this->userService->index($id);
+            return $this->userService->delete($id);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
