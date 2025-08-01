@@ -19,11 +19,21 @@ class UserController extends AbstractController
         $this->userService = $userService;
     }
 
-    #[Route('/user', name: 'app_user')]
-    public function index(Request $request)
+    #[Route('/user/{id}', name: 'app_user', methods: ['GET'])]
+    public function index($id)
     {
         try{
-            return $this->userService->index();
+            return $this->userService->index($id);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    #[Route('/user/{id}', name: 'app_user_delete', methods: ['DELETE'])]
+    public function delete($id)
+    {
+        try{
+            return $this->userService->index($id);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
