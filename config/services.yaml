@@ -16,9 +16,11 @@ services:
     App\:
         resource: '../src/'
 
-    App\EventListener\JWTCreatedListener:
+    # config/services.yaml
+    App\EventListener\XsrfTokenListener:
         tags:
-            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }
+            - { name: kernel.event_listener, event: kernel.request, priority: 8 }
+
 
     App\EventListener\RateLimitListener:
         arguments:
