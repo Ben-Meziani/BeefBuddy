@@ -2,26 +2,30 @@
 
 namespace App\Controller;
 
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use App\Service\SecurityService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 class SecurityController extends AbstractController
 {
+    public function __construct(
+        private SecurityService $securityService
+    ) {}
+
     #[Route('/login', name: 'app_login', methods: ['POST'])]
     public function login(
-        #[CurrentUser] $user = null,
-        JWTTokenManagerInterface $jwtManager
-    ): Response
+        Request $request
+        ): Response
     {
-        $token = $jwtManager->create($user);
-        return $this->json([
-            'user' => $user ? $user->getId() : null,
-            'token' => $token,
-        ]);
+        try {
+            return $this->securityService->login($request);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
+        }
     }
+
 
     #[Route('/logout', name: 'app_logout')]
     public function logout(): void

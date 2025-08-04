@@ -14,19 +14,35 @@ class HomeService
         private JWTEncoderInterface $jwtEncoder,
         private EntityManagerInterface $entityManager
     ) {}
-    public function index(Request $request)
+
+        #[Route('/home', name: 'home_data', methods: ['GET'])]
+    public function index(Request $request): JsonResponse
     {
-        $authHeader = $request->headers->get('Authorization');
-        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            return new JsonResponse(['error' => 'Token manquant ou invalide'], 400);
+        $jwt = $request->cookies->get('access_token');
+        $xsrfHeader = $request->headers->get('X-XSRF-TOKEN');
+        if (!$jwt || !$xsrfHeader) {
+            return new JsonResponse(['error' => 'Token ou XSRF manquant'], 403);
         }
-        $token = str_replace('Bearer ', '', $authHeader);
-        $decoded = $this->jwtEncoder->decode($token);
+
+        try {
+            $decoded = $this->jwtEncoder->decode($jwt);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Token invalide'], 401);
+        }
+
+        if (!isset($decoded['xsrfToken']) || $decoded['xsrfToken'] !== $xsrfHeader) {
+            return new JsonResponse(['error' => 'XSRF token invalide'], 403);
+        }
+
         $user = $this->entityManager->getRepository(User::class)->find($decoded['id']);
+
         if (!$user) {
             return new JsonResponse(['user' => 'guest'], 200);
         }
 
-        return new JsonResponse(['user' => $user->getUsername(), 'roles' => $user->getRoles()], 200);
+        return new JsonResponse([
+            'user' => $user->getUsername(),
+            'roles' => $user->getRoles()
+        ]);
     }
 }
