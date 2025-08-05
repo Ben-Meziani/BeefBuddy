@@ -43,7 +43,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, RefreshToken>
      */
-    #[ORM\OneToMany(targetEntity: RefreshToken::class, mappedBy: 'user')]
+    #[ORM\OneToMany(targetEntity: RefreshToken::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $refreshTokens;
 
     public function __construct()

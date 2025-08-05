@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Service\SecurityService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -27,9 +28,12 @@ class SecurityController extends AbstractController
     }
 
 
-    #[Route('/logout', name: 'app_logout')]
-    public function logout(): void
+    #[Route('/logout', name: 'logout', methods: ['POST'])]
+    public function logout(): JsonResponse
     {
-        // This method can be blank - it will be intercepted by the logout key on your firewall
+        $response = new JsonResponse(['message' => 'Déconnecté']);
+        $response->headers->clearCookie('access_token', '/', null, true, true, 'None');
+        $response->headers->clearCookie('refresh_token', '/token', null, true, true, 'None');
+        return $response;
     }
 }
