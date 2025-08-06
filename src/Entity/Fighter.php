@@ -58,6 +58,27 @@ class Fighter
     #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'fighter')]
     private Collection $reservations;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $height = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $weight = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $reach = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $stance = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $Style = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $placeOfBirth = null;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
@@ -177,6 +198,18 @@ class Fighter
         return $this;
     }
 
+    public function getPlaceOfBirth(): ?string
+    {
+        return $this->placeOfBirth;
+    }
+
+    public function setPlaceOfBirth(?string $placeOfBirth): static
+    {
+        $this->placeOfBirth = $placeOfBirth;
+
+        return $this;
+    }
+
     public function isActive(): ?bool
     {
         return $this->isActive;
@@ -241,5 +274,101 @@ class Fighter
         }
 
         return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getHeight(): ?string
+    {
+        return $this->height;
+    }
+
+    public function setHeight(?string $height): static
+    {
+        $this->height = $height;
+
+        return $this;
+    }
+
+    public function getWeight(): ?string
+    {
+        return $this->weight;
+    }
+
+    public function setWeight(?string $weight): static
+    {
+        $this->weight = $weight;
+
+        return $this;
+    }
+
+    public function getReach(): ?string
+    {
+        return $this->reach;
+    }
+
+    public function setReach(?string $reach): static
+    {
+        $this->reach = $reach;
+
+        return $this;
+    }
+
+    public function getStance(): ?string
+    {
+        return $this->stance;
+    }
+
+    public function setStance(?string $stance): static
+    {
+        $this->stance = $stance;
+
+        return $this;
+    }
+
+    public function getStyle(): ?string
+    {
+        return $this->Style;
+    }
+
+    public function setStyle(?string $Style): static
+    {
+        $this->Style = $Style;
+
+        return $this;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'nickname' => $this->nickname,
+            'weightClass' => $this->weightClass,
+            'wins' => $this->wins,
+            'losses' => $this->losses,
+            'draws' => $this->draws,
+            'noContest' => $this->noContest,
+            'country' => $this->country,
+            'birthday' => $this->birthday?->format('Y-m-d'),
+            'placeOfBirth' => $this->placeOfBirth,
+            'isActive' => $this->isActive,
+            'description' => $this->description,
+            'height' => $this->height,
+            'weight' => $this->weight,
+            'reach' => $this->reach,
+            'stance' => $this->stance,
+            'style' => $this->Style,
+        ];
     }
 }
