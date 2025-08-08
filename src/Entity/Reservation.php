@@ -4,8 +4,13 @@ namespace App\Entity;
 
 use App\Repository\ReservationRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: ReservationRepository::class)]
+#[UniqueEntity(
+    fields: ['user', 'fighter', 'startAt'],
+    message: 'You have already reserved this fighter at this time'
+)]
 class Reservation
 {
     #[ORM\Id]
@@ -14,10 +19,10 @@ class Reservation
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
-    private ?user $user = null;
+    private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'reservations')]
-    private ?fighter $fighter = null;
+    private ?Fighter $fighter = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $startAt = null;
@@ -25,29 +30,32 @@ class Reservation
     #[ORM\Column]
     private ?\DateTimeImmutable $endAt = null;
 
+    #[ORM\Column]
+    private ?int $totalPrice = null;
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getUser(): ?user
+    public function getUser(): ?User
     {
         return $this->user;
     }
 
-    public function setUser(?user $user): static
+    public function setUser(?User $user): static
     {
         $this->user = $user;
 
         return $this;
     }
 
-    public function getFighter(): ?fighter
+    public function getFighter(): ?Fighter
     {
         return $this->fighter;
     }
 
-    public function setFighter(?fighter $fighter): static
+    public function setFighter(?Fighter $fighter): static
     {
         $this->fighter = $fighter;
 
@@ -74,6 +82,18 @@ class Reservation
     public function setEndAt(\DateTimeImmutable $endAt): static
     {
         $this->endAt = $endAt;
+
+        return $this;
+    }
+
+    public function getTotalPrice(): ?int
+    {
+        return $this->totalPrice;
+    }
+
+    public function setTotalPrice(int $totalPrice): static
+    {
+        $this->totalPrice = $totalPrice;
 
         return $this;
     }
