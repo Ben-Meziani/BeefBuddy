@@ -1229,8 +1229,10 @@ class FightersCommand extends Command
             $fighter->setHeight($fighterData['height']);
             $fighter->setWeight($fighterData['weight']);
             $fighter->setReach($fighterData['reach']);
+            $fighter->setPricePerTraining(random_int(100, 10000));
             $fighter->setStance($fighterData['stance']);
             $fighter->setStyle($fighterData['style']);
+
             $this->entityManager->persist($fighter);
             $this->entityManager->flush();
         }

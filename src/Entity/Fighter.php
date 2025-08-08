@@ -79,6 +79,9 @@ class Fighter
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $placeOfBirth = null;
 
+    #[ORM\Column]
+    private ?int $pricePerTraining = null;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
@@ -348,6 +351,18 @@ class Fighter
         return $this;
     }
 
+    public function getPricePerTraining(): ?int
+    {
+        return $this->pricePerTraining;
+    }
+
+    public function setPricePerTraining(int $pricePerTraining): static
+    {
+        $this->pricePerTraining = $pricePerTraining;
+
+        return $this;
+    }
+
     public function toArray(): array
     {
         return [
@@ -369,6 +384,7 @@ class Fighter
             'reach' => $this->reach,
             'stance' => $this->stance,
             'style' => $this->Style,
+            'pricePerTraining' => $this->pricePerTraining,
         ];
     }
 }
