@@ -9,12 +9,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-
+use App\Service\EmailService;
 class ReservationService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ValidatorInterface $validator,
+        private EmailService $emailService,
     ) {}
 
     public function createReservation(Request $request){
@@ -41,6 +42,11 @@ class ReservationService
 
         $this->entityManager->persist($reservation);
         $this->entityManager->flush();
+        $this->emailService->sendEmail($user, 'Reservation created', 'reservation/reservation.html.twig', [
+            'reservation' => $reservation,
+            'user' => $user,
+            'fighter' => $fighter,
+        ]);
         return new JsonResponse(['message' => 'Reservation created']);
     }
 }
