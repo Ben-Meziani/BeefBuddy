@@ -16,8 +16,6 @@ use App\Service\ReservationService;
 final class ReservationController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private ValidatorInterface $validator,
         private ReservationService $reservationService,
     ) {}
 
