@@ -14,8 +14,7 @@ class HomeService
         private JWTEncoderInterface $jwtEncoder,
         private EntityManagerInterface $entityManager
     ) {}
-
-        #[Route('/home', name: 'home_data', methods: ['GET'])]
+    
     public function index(Request $request): JsonResponse
     {
         $jwt = $request->cookies->get('access_token');
@@ -41,6 +40,7 @@ class HomeService
         }
 
         return new JsonResponse([
+            'status' => 200,
             'user' => $user->getUsername(),
             'roles' => $user->getRoles()
         ]);
