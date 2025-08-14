@@ -57,7 +57,8 @@ class ResetPasswordService
         Request $request
     ): JsonResponse {
        $data = json_decode($request->getContent(), true);
-        $token = $request->headers->get('X-Reset-Token');
+       $token = $request->headers->get('Authorization');
+       $token = str_replace('Bearer ', '', $token);
         if (!$token) {
             return new JsonResponse(['error' => 'Token manquant'], 400);
         }
