@@ -29,4 +29,15 @@ final class ReservationController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
+
+    #[Route('/reservation/user/{id}', name: 'app_user_reservation', methods: ['GET'])]
+    public function getUserReservation(int $id): JsonResponse
+    {
+        try {
+            return $this->reservationService->getUserReservation($id);
+        }
+        catch(\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
+    }
 }
