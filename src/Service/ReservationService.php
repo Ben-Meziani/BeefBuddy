@@ -61,6 +61,7 @@ class ReservationService
             $data[] = [
                 'id' => $reservation->getId(),
                 'fighter' => $reservation->getFighter()->getName(),
+                'totalPrice' => $reservation->getTotalPrice(),
                 'startAt' => $reservation->getStartAt(),
                 'endAt' => $reservation->getEndAt(),
             ];
