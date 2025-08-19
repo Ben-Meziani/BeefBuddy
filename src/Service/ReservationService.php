@@ -49,4 +49,23 @@ class ReservationService
         ]);
         return new JsonResponse(['message' => 'Reservation created']);
     }
+
+    public function getUserReservation(int $id){
+        $user = $this->entityManager->getRepository(User::class)->find($id);
+        if (!$user) {
+            return new JsonResponse(['error' => 'User not found'], 404);
+        }
+        $reservations = $this->entityManager->getRepository(Reservation::class)->findBy(['user' => $user]);
+        $data = [];
+        foreach ($reservations as $reservation) {
+            $data[] = [
+                'id' => $reservation->getId(),
+                'fighter' => $reservation->getFighter()->getName(),
+                'totalPrice' => $reservation->getTotalPrice(),
+                'startAt' => $reservation->getStartAt(),
+                'endAt' => $reservation->getEndAt(),
+            ];
+        }
+        return new JsonResponse(['reservations' => $data]);
+    }
 }
