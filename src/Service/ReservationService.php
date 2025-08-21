@@ -28,7 +28,7 @@ class ReservationService
         $reservation->setUser($user);
         $reservation->setTotalPrice($data['totalPrice']);
         $reservation->setStartAt(new \DateTimeImmutable($data['dates'][0]));
-        $reservation->setEndAt(new \DateTimeImmutable($data['dates'][0] ?? $data['dates'][1]));
+        $reservation->setEndAt(new \DateTimeImmutable($data['dates'][1]) ?? new \DateTimeImmutable($data['dates'][0]));
 
         // Valider l'entité avant de la persister
         $errors = $this->validator->validate($reservation);
