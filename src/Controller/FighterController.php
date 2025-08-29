@@ -8,56 +8,42 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\FighterService;
 
 final class FighterController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private FighterService $fighterService,
     ) {}
 
     #[Route('/fighters', name: 'app_fighters', methods: ['GET'])]
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $fighters = $this->entityManager->getRepository(Fighter::class)->findAll();
-        $fightersArray = array_map(fn(Fighter $fighter) => $fighter->toArray(), $fighters);
-        return new JsonResponse(['fighters' => $fightersArray]);
+        try{
+            return $this->fighterService->index($request);
+        }catch(\Exception $e){
+            throw new \Exception('Error fetching fighters: ' . $e->getMessage());
+        }
     }
 
     #[Route('/fighter/{id}', name: 'app_fighter_show', methods: ['GET'])]
     public function show(int $id): JsonResponse
     {
-        $fighter = $this->entityManager->getRepository(Fighter::class)->find($id);
-        return new JsonResponse(['fighter' => $fighter->toArray()]);
+        try{
+            return $this->fighterService->show($id);
+        }catch(\Exception $e){
+            throw new \Exception('Error fetching fighter: ' . $e->getMessage());
+        }
     }
 
     #[Route('/fighter', name: 'app_fighter_register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $fighter = new Fighter();
-        $fighter->setName($data['name']);
-        $fighter->setNickname($data['nickname']);
-        $fighter->setDescription($data['description']);
-        $fighter->setWeightClass($data['weightClass']);
-        $fighter->setWins($data['wins']);
-        $fighter->setLosses($data['losses']);
-        $fighter->setDraws($data['draws']);
-        $fighter->setCountry($data['country']);
-        $birthday = \DateTime::createFromFormat('d/m/Y', $data['birthday']);
-        if ($birthday !== false) {
-            $fighter->setBirthday($birthday);
-        } else {
-            throw new \InvalidArgumentException("Format de date invalide pour 'birthday'. Format attendu : jj/mm/aaaa");
+        try{
+            return $this->fighterService->register($request);
+        }catch(\Exception $e){
+            throw new \Exception('Error registering fighter: ' . $e->getMessage());
         }
-        $fighter->setIsActive($data['isActive']);
-        !empty($data['height']) && $fighter->setHeight($data['height']);
-        !empty($data['weight']) && $fighter->setWeight($data['weight']);
-        !empty($data['reach']) && $fighter->setReach($data['reach']);
-        !empty($data['stance']) && $fighter->setStance($data['stance']);
-        !empty($data['style']) && $fighter->setStyle($data['style']);
-
-        $this->entityManager->persist($fighter);
-        $this->entityManager->flush();
-        return new JsonResponse(['message' => 'Fighter registered successfully']);
     }
 }
