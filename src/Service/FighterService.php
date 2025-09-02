@@ -3,9 +3,12 @@
 namespace App\Service;
 
 use App\Entity\Fighter;
+use App\Entity\Reservation;
+use Carbon\CarbonPeriod;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class FighterService
 {
@@ -28,7 +31,22 @@ class FighterService
     public function show(int $id): JsonResponse
     {
         $fighter = $this->entityManager->getRepository(Fighter::class)->find($id);
-        return new JsonResponse(['fighter' => $fighter->toArray()]);
+
+        if (!$fighter) {
+            throw new NotFoundHttpException(sprintf('No fighter found for id "%d"', $id));
+        }
+        $reservationDates = [];
+        foreach($fighter->getReservations() as $reservation) {
+            $reservationDates[] = CarbonPeriod::create($reservation->getStartAt(), $reservation->getEndAt())->toArray();
+        }
+        $reservationDates = array_merge(...$reservationDates);
+        $reservationDates = array_map(fn($date) => $date->format('Y-m-d'), $reservationDates);
+
+
+        return new JsonResponse([
+            'fighter' => $fighter->toArray(),
+            'reservationDates' => $reservationDates
+        ]);
     }
 
     public function register(Request $request): JsonResponse
