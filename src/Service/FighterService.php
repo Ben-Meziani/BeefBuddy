@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Fighter;
 use App\Entity\Reservation;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonPeriod;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,17 +36,19 @@ class FighterService
         if (!$fighter) {
             throw new NotFoundHttpException(sprintf('No fighter found for id "%d"', $id));
         }
-        $reservationDates = [];
-        foreach($fighter->getReservations() as $reservation) {
-            $reservationDates[] = CarbonPeriod::create($reservation->getStartAt(), $reservation->getEndAt())->toArray();
-        }
-        $reservationDates = array_merge(...$reservationDates);
-        $reservationDates = array_map(fn($date) => $date->format('Y-m-d'), $reservationDates);
 
+        $reservationDates = array_unique(array_map(
+            fn($date) => $date->format('Y-m-d'),
+            array_merge(...array_map(
+                fn($r) => CarbonPeriod::create($r->getStartAt(), $r->getEndAt())->toArray(),
+                $fighter->getReservations()->toArray()
+            ))
+        ));
+        sort($reservationDates);
 
         return new JsonResponse([
             'fighter' => $fighter->toArray(),
-            'reservationDates' => $reservationDates
+            'reservationDates' => $reservationDates,
         ]);
     }
 
