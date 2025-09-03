@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\EmailService;
 use App\Service\UserRegistrationService;
+use Symfony\Component\DependencyInjection\Attribute\Lazy;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -25,7 +26,7 @@ final class RegistrationController extends AbstractController
     public function register(Request $request): JsonResponse
     {
         try {
-            $this->registrationService->register($request);
+            $this->registrationService->register($request, $this->getParameter('host_front'));
             return new JsonResponse(['message' => 'Inscription réussie. Vérifiez votre email.'], 200);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 400);
@@ -51,7 +52,7 @@ final class RegistrationController extends AbstractController
         // validate email confirmation link, sets User::isVerified=true and persists
         try {
             $this->emailService->handleEmailConfirmation($request, $user);
-            return new RedirectResponse($_ENV['HOST_FRONT'] . '/login');
+            return new RedirectResponse($this->getParameter('host_front') . '/login');
         } catch (VerifyEmailExceptionInterface $exception) {
             return new JsonResponse(['error' => $translator->trans($exception->getReason(), [], 'VerifyEmailBundle')], 400);
         }

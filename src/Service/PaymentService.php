@@ -15,7 +15,7 @@ class PaymentService
         private ReservationService $reservationService,
     ) {}
 
-    public function checkout(Request $request)
+    public function checkout(Request $request, string $hostFront)
     {
         $data = json_decode($request->getContent(), true);
         $amount = (int) $data['totalPrice']*100;
@@ -33,8 +33,8 @@ class PaymentService
                 ],
                 'quantity' => 1,
             ]],
-            'success_url' => $_ENV['HOST_FRONT'] . '/payment-success',
-            'cancel_url'  => $_ENV['HOST_FRONT'] . '/payment-failed',
+            'success_url' => $hostFront . '/payment-success',
+            'cancel_url'  => $hostFront . '/payment-failed',
             'metadata' => [
                 'fighter_id' => $data['fighterId'] ?? null,
                 'user_id'    => null,

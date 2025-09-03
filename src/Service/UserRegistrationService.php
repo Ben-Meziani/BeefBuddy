@@ -17,7 +17,7 @@ class UserRegistrationService
         private JWTTokenManagerInterface $jwtManager,
         private EmailService $emailService,
     ) {}
-    public function register(Request $request)
+    public function register(Request $request, string $hostFront)
     {
         $data = json_decode($request->getContent(), true);
         $user = new User();
@@ -36,7 +36,7 @@ class UserRegistrationService
         // actually executes the queries (i.e. the INSERT query)
         $this->entityManager->flush();
         $token = $this->jwtManager->create($user);
-        $url = $_ENV['HOST_FRONT'] . '/login?token=' . $token;
+        $url = $hostFront . '/login?token=' . $token;
         $this->emailService->sendEmail(
             $user,
             'Please Confirm your Email',

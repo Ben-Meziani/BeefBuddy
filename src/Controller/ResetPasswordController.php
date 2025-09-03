@@ -25,7 +25,7 @@ class ResetPasswordController extends AbstractController
     public function resetPassword(Request $request): JsonResponse
     {
         try {
-            return $this->resetPasswordService->resetPassword($request);
+            return $this->resetPasswordService->resetPassword($request, $this->getParameter('host_front'));
         }catch (\Exception $e) {
             return new JsonResponse(['error' => 'Erreur interne.'], 500);
         }

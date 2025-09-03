@@ -21,7 +21,8 @@ class ResetPasswordService
     ) {}
 
     public function resetPassword(
-        Request $request
+        Request $request,
+        string $hostFront
         ): JsonResponse {
         $data = json_decode($request->getContent(), true);
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
@@ -34,7 +35,7 @@ class ResetPasswordService
                 'exp' => (new \DateTimeImmutable('+10 minutes'))->getTimestamp(),
             ];
             $token = $this->jwtManager->createFromPayload($user, $payload);
-            $url = $_ENV['HOST_FRONT'] . '/reset-password-form?token=' . $token;
+            $url = $hostFront . '/reset-password-form?token=' . $token;
 
             $this->emailService->sendEmail(
                 $user,
