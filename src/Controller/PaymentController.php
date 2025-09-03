@@ -34,7 +34,7 @@ final class PaymentController extends AbstractController
     public function checkout(Request $request): JsonResponse
     {
         try{
-            return $this->paymentService->checkout($request, $this->getParameter('host_front'), $this->getParameter('stripe_secret_key'));
+            return $this->paymentService->checkout($request, $this->getParameter('host_front'), $this->getParameter('stripe_secret_key'), $this->getParameter('mail_from'), $this->getParameter('mail_from_name'));
         }catch(\Exception $e){
             $this->logger->error('Error checking out: ' . $e->getMessage());
             return new JsonResponse(['error' => $e->getMessage()], 500);

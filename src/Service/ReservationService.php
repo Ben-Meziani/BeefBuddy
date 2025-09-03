@@ -22,7 +22,7 @@ class ReservationService
         private SerializerInterface $serializer,
     ) {}
 
-    public function createReservation(Request $request){
+    public function createReservation(Request $request, string $from, string $fromName){
         $data = $this->serializer->deserialize($request->getContent(), ReservationData::class, 'json');
         $reservation = new Reservation();
         $fighter = $this->entityManager->getRepository(Fighter::class)->find($data->fighterId);
@@ -50,7 +50,7 @@ class ReservationService
             'reservation' => $reservation,
             'user' => $user,
             'fighter' => $fighter,
-        ]);
+        ], $from, $fromName);
         return new JsonResponse(['message' => 'Reservation created']);
     }
 

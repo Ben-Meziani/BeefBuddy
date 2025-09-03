@@ -18,7 +18,7 @@ class PaymentService
         private SerializerInterface $serializer,
     ) {}
 
-    public function checkout(Request $request, string $hostFront, string $stripeSecretKey)
+    public function checkout(Request $request, string $hostFront, string $stripeSecretKey, string $from, string $fromName)
     {
         $data = $this->serializer->deserialize($request->getContent(), CheckoutData::class, 'json');
         $amount = (int) $data->totalPrice*100;
@@ -44,7 +44,7 @@ class PaymentService
             ],
         ]);
         if($session->success_url) {
-            $this->reservationService->createReservation($request);
+            $this->reservationService->createReservation($request, $from, $fromName);
         }
 
         // Return the URL (or the ID if you prefer redirectToCheckout on the front)

@@ -20,7 +20,7 @@ class UserRegistrationService
         private EmailService $emailService,
         private SerializerInterface $serializer,
     ) {}
-    public function register(Request $request, string $hostFront)
+    public function register(Request $request, string $hostFront, string $from, string $fromName)
     {
         $data = $this->serializer->deserialize(
             $request->getContent(),
@@ -52,7 +52,9 @@ class UserRegistrationService
             [
             'confirmationUrl' => $url,
             'user' => $user,
-            ]
+            ],
+            $from,
+            $fromName
         );
         return new JsonResponse(['message' => 'Registration successful. Please check your email to verify your account.'], 200);
     }

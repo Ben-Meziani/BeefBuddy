@@ -24,13 +24,16 @@ class EmailService
         User $user,
         string $subject,
         string $template,
-        array $context): void
+        array $context,
+        string $from,
+        string $fromName
+    ): void
     {
         $this->emailVerifier->sendEmailConfirmation(
             'app_verify_email',
             $user,
             (new TemplatedEmail())
-                ->from(new Address($_ENV['MAIL_FROM'], $_ENV['MAIL_FROM_NAME']))
+                ->from(new Address($from, $fromName))
                 ->to($user->getEmail())
                 ->subject($subject)
                 ->htmlTemplate($template)

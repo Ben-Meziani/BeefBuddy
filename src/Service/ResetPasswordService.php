@@ -26,7 +26,9 @@ class ResetPasswordService
 
     public function resetPassword(
         Request $request,
-        string $hostFront
+        string $hostFront,
+        string $from,
+        string $fromName
         ): JsonResponse {
         $data = $this->serializer->deserialize($request->getContent(), ResetPasswordData::class, 'json');
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
@@ -48,7 +50,9 @@ class ResetPasswordService
                 [
                     'resetPasswordUrl' => $url,
                     'user' => $user,
-                ]
+                ],
+                $from,
+                $fromName
             );
         }
         return new JsonResponse([
