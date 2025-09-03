@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\ReservationService;
 use App\Service\PaymentService;
+use Psr\Log\LoggerInterface;
 
 final class PaymentController extends AbstractController
 {
@@ -18,6 +19,7 @@ final class PaymentController extends AbstractController
         private EntityManagerInterface $entityManager,
         private ReservationService $reservationService,
         private PaymentService $paymentService,
+        private LoggerInterface $logger,
     ) {}
 
     #[Route('/payment', name: 'app_payment')]
@@ -32,8 +34,9 @@ final class PaymentController extends AbstractController
     public function checkout(Request $request): JsonResponse
     {
         try{
-            return $this->paymentService->checkout($request, $this->getParameter('host_front'));
+            return $this->paymentService->checkout($request, $this->getParameter('host_front'), $this->getParameter('stripe_secret_key'), $this->getParameter('mail_from'), $this->getParameter('mail_from_name'));
         }catch(\Exception $e){
+            $this->logger->error('Error checking out: ' . $e->getMessage());
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }

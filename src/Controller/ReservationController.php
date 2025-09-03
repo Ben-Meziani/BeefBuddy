@@ -19,17 +19,6 @@ final class ReservationController extends AbstractController
         private ReservationService $reservationService,
     ) {}
 
-    #[Route('/reservation', name: 'app_reservation', methods: ['POST'])]
-    public function index(Request $request): JsonResponse
-    {
-        try {
-            return $this->reservationService->createReservation($request);
-
-        }catch(\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
-        }
-    }
-
     #[Route('/reservation/user/{id}', name: 'app_user_reservation', methods: ['GET'])]
     public function getUserReservation(int $id, Request $request): JsonResponse
     {

@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\DTO\ReservationData;
 use App\Entity\Fighter;
 use App\Entity\Reservation;
 use App\Entity\User;
@@ -10,25 +11,28 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Service\EmailService;
+use Symfony\Component\Serializer\SerializerInterface;
+
 class ReservationService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ValidatorInterface $validator,
         private EmailService $emailService,
+        private SerializerInterface $serializer,
     ) {}
 
-    public function createReservation(Request $request){
-        $data = json_decode($request->getContent(), true);
+    public function createReservation(Request $request, string $from, string $fromName){
+        $data = $this->serializer->deserialize($request->getContent(), ReservationData::class, 'json');
         $reservation = new Reservation();
-        $fighter = $this->entityManager->getRepository(Fighter::class)->find($data['fighterId']);
+        $fighter = $this->entityManager->getRepository(Fighter::class)->find($data->fighterId);
 
-        $user = $this->entityManager->getRepository(User::class)->find($data['userId']);
+        $user = $this->entityManager->getRepository(User::class)->find($data->userId);
         $reservation->setFighter($fighter);
         $reservation->setUser($user);
-        $reservation->setTotalPrice($data['totalPrice']);
-        $reservation->setStartAt(new \DateTimeImmutable($data['dates'][0]));
-        $reservation->setEndAt(new \DateTimeImmutable($data['dates'][1]) ?? new \DateTimeImmutable($data['dates'][0]));
+        $reservation->setTotalPrice($data->totalPrice);
+        $reservation->setStartAt(new \DateTimeImmutable($data->dates[0]));
+        $reservation->setEndAt(new \DateTimeImmutable($data->dates[1]) ?? new \DateTimeImmutable($data->dates[0]));
 
         // Valider l'entité avant de la persister
         $errors = $this->validator->validate($reservation);
@@ -46,7 +50,7 @@ class ReservationService
             'reservation' => $reservation,
             'user' => $user,
             'fighter' => $fighter,
-        ]);
+        ], $from, $fromName);
         return new JsonResponse(['message' => 'Reservation created']);
     }
 
