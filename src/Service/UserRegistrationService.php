@@ -2,12 +2,14 @@
 
 namespace App\Service;
 
+use App\DTO\RegistrationData;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class UserRegistrationService
 {
@@ -16,18 +18,24 @@ class UserRegistrationService
         private UserPasswordHasherInterface $passwordHasher,
         private JWTTokenManagerInterface $jwtManager,
         private EmailService $emailService,
+        private SerializerInterface $serializer,
     ) {}
     public function register(Request $request, string $hostFront)
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $this->serializer->deserialize(
+            $request->getContent(),
+            RegistrationData::class,
+            'json'
+        );
+
         $user = new User();
-        $user->setUsername($data['username']);
+        $user->setUsername($data->username);
         $user->setRoles(['ROLE_USER']);
-        $user->setEmail($data['email']);
+        $user->setEmail($data->email);
         // Here you would typically hash the password before saving it
         $hashedPassword = $this->passwordHasher->hashPassword(
             $user,
-            $data['password']
+            $data->password
         );
         $user->setPassword($hashedPassword);
         $user->setIsVerified(false);

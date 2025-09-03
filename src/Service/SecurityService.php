@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\DTO\LoginData;
 use App\Entity\RefreshToken;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,22 +12,23 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-
+use Symfony\Component\Serializer\SerializerInterface;
 class SecurityService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private JWTTokenManagerInterface $jwtManager,
-        private UserPasswordHasherInterface $passwordHasher
+        private UserPasswordHasherInterface $passwordHasher,
+        private SerializerInterface $serializer
     ) {}
 
 
     public function login(Request $request)
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $this->serializer->deserialize($request->getContent(), LoginData::class, 'json');
 
-        $email = $data['email'];
-        $password = $data['password'];
+        $email = $data->email;
+        $password = $data->password;
         if (!$email || !$password) {
             return new JsonResponse(['message' => 'missing_required_parameter'], Response::HTTP_BAD_REQUEST);
         }

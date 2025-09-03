@@ -2,26 +2,29 @@
 
 namespace App\Service;
 
+use App\DTO\CheckoutData;
 use App\Entity\Fighter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Service\ReservationService;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class PaymentService
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ReservationService $reservationService,
+        private SerializerInterface $serializer,
     ) {}
 
-    public function checkout(Request $request, string $hostFront)
+    public function checkout(Request $request, string $hostFront, string $stripeSecretKey)
     {
-        $data = json_decode($request->getContent(), true);
-        $amount = (int) $data['totalPrice']*100;
-        $fighter = $this->entityManager->getRepository(Fighter::class)->find($data['fighterId']);
+        $data = $this->serializer->deserialize($request->getContent(), CheckoutData::class, 'json');
+        $amount = (int) $data->totalPrice*100;
+        $fighter = $this->entityManager->getRepository(Fighter::class)->find($data->fighterId);
 
-        $stripe = new \Stripe\StripeClient($_ENV['STRIPE_SECRET_KEY']);
+        $stripe = new \Stripe\StripeClient($stripeSecretKey);
 
         $session = $stripe->checkout->sessions->create([
             'mode' => 'payment',
@@ -36,7 +39,7 @@ class PaymentService
             'success_url' => $hostFront . '/payment-success',
             'cancel_url'  => $hostFront . '/payment-failed',
             'metadata' => [
-                'fighter_id' => $data['fighterId'] ?? null,
+                'fighter_id' => $data->fighterId ?? null,
                 'user_id'    => null,
             ],
         ]);

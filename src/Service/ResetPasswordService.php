@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\DTO\ResetPasswordData;
+use App\DTO\ResetPasswordFormData;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
@@ -9,6 +11,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class ResetPasswordService
 {
@@ -18,15 +21,16 @@ class ResetPasswordService
         private JWTTokenManagerInterface $jwtManager,
         private JWTEncoderInterface $jwtEncoder,
         private UserPasswordHasherInterface $passwordHasher,
+        private SerializerInterface $serializer,
     ) {}
 
     public function resetPassword(
         Request $request,
         string $hostFront
         ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
+        $data = $this->serializer->deserialize($request->getContent(), ResetPasswordData::class, 'json');
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
-            'email' => $data['email'],
+            'email' => $data->email,
         ]);
         if ($user) {
             $payload = [
@@ -57,7 +61,7 @@ class ResetPasswordService
     public function resetPasswordForm(
         Request $request
     ): JsonResponse {
-       $data = json_decode($request->getContent(), true);
+       $data = $this->serializer->deserialize($request->getContent(), ResetPasswordFormData::class, 'json');
        $token = $request->headers->get('Authorization');
        $token = str_replace('Bearer ', '', $token);
         if (!$token) {
@@ -79,11 +83,11 @@ class ResetPasswordService
                 return new JsonResponse(['error' => 'Utilisateur introuvable'], 404);
             }
 
-            if (empty($data['password'])) {
+            if (empty($data->password)) {
                 return new JsonResponse(['error' => 'Mot de passe manquant'], 400);
             }
 
-            $hashedPassword = $this->passwordHasher->hashPassword($user, $data['password']);
+            $hashedPassword = $this->passwordHasher->hashPassword($user, $data->password);
             $user->setPassword($hashedPassword);
 
             $this->entityManager->flush();
