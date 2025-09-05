@@ -8,11 +8,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-
+use Symfony\Component\DependencyInjection\Attribute\Lazy;
 class SecurityController extends AbstractController
 {
     public function __construct(
-        private SecurityService $securityService
+        #[Lazy] private SecurityService $securityService
     ) {}
 
     #[Route('/login', name: 'app_login', methods: ['POST'])]

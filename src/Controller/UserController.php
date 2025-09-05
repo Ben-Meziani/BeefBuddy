@@ -3,21 +3,17 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use App\Service\UserService;
 use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
-
+use Symfony\Component\DependencyInjection\Attribute\Lazy;
 class UserController extends AbstractController
 {
     public function __construct(
-        private UserService $userService,
+        #[Lazy] private UserService $userService,
         private EntityManagerInterface $entityManager,
-    ){
-        $this->userService = $userService;
-    }
+    ) {}
 
     #[Route('/user/{id}', name: 'app_user', methods: ['GET'])]
     public function index($id)

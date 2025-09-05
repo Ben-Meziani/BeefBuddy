@@ -10,16 +10,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-
-// #[Route('/reset-password')]
-
+use Symfony\Component\DependencyInjection\Attribute\Lazy;
 class ResetPasswordController extends AbstractController
 {
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private EmailService $emailService,
-        private ResetPasswordService $resetPasswordService,
+        #[Lazy] private EmailService $emailService,
+        #[Lazy] private ResetPasswordService $resetPasswordService,
         private LoggerInterface $logger
     ) {}
 
