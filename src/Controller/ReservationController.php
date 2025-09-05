@@ -12,11 +12,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use App\Service\ReservationService;
-
+use Symfony\Component\DependencyInjection\Attribute\Lazy;
 final class ReservationController extends AbstractController
 {
     public function __construct(
-        private ReservationService $reservationService,
+        #[Lazy] private ReservationService $reservationService,
     ) {}
 
     #[Route('/reservation/user/{id}', name: 'app_user_reservation', methods: ['GET'])]

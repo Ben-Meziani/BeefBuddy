@@ -12,13 +12,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\Service\ReservationService;
 use App\Service\PaymentService;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Lazy;
 
 final class PaymentController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ReservationService $reservationService,
-        private PaymentService $paymentService,
+        #[Lazy] private ReservationService $reservationService,
+        #[Lazy] private PaymentService $paymentService,
         private LoggerInterface $logger,
     ) {}
 

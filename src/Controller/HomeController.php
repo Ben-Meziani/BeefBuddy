@@ -7,11 +7,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\HomeService;
-
+use Symfony\Component\DependencyInjection\Attribute\Lazy;
 final class HomeController extends AbstractController
 {
     public function __construct(
-        private HomeService $homeService
+        #[Lazy] private HomeService $homeService
     ) {}
 
     #[Route('/home', name: 'app_home')]

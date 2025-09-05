@@ -9,12 +9,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\FighterService;
-
+use Symfony\Component\DependencyInjection\Attribute\Lazy;
 final class FighterController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private FighterService $fighterService,
+        #[Lazy] private FighterService $fighterService,
     ) {}
 
     #[Route('/fighters', name: 'app_fighters', methods: ['GET'])]

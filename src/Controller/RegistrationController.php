@@ -19,7 +19,7 @@ final class RegistrationController extends AbstractController
 {
     public function __construct(
         private EmailService $emailService,
-        private UserRegistrationService $registrationService
+        #[Lazy] private UserRegistrationService $registrationService
     ) {}
 
     #[Route('/register', name: 'app_registration', methods: ['POST'])]
