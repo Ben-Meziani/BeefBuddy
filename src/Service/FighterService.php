@@ -24,27 +24,36 @@ class FighterService
         private FighterRepository $fighterRepository,
     ) {}
 
-    public function index(Request $request)
-    {
-        $params = $request->query->all('params');
-        $page = $params['page'] ?? 1;
-        $perPage = $params['per_page'] ?? 10;
-        $offset = ($page - 1) * $perPage;
-        // $totalFighters = $this->fighterRepository->count([]);
-        $totalFighters = $this->cache->get('total_fighters', function(ItemInterface $item) {
-            $item->expiresAfter(3600);
-            return $this->fighterRepository->count([]);
-        });
-        // $fighters = $this->fighterRepository->findBy([], ['id' => 'DESC'], $perPage, $offset);
-        $fighters = $this->cache->get('fighters', function(ItemInterface $item) use ($perPage, $offset) {
-            $item->expiresAfter(3600);
-            return $this->fighterRepository->findBy([], ['id' => 'DESC'], $perPage, $offset);
-        });
-        $fightersArray = array_map(fn(Fighter $fighter) => $fighter->toArray(), $fighters);
-        return new JsonResponse(['fighters' => $fightersArray, 'totalFighters' => $totalFighters, 'page' => $page, 'perPage' => $perPage]);
-    }
+    public function index(Request $request): JsonResponse
+{
+    $params  = $request->query->all('params');
+    $page    = (int)($params['page'] ?? 1);
+    $perPage = (int)($params['per_page'] ?? 10);
+    $offset  = ($page - 1) * $perPage;
 
-    public function show(int $id): JsonResponse
+    // total (stable key)
+    $totalFighters = $this->cache->get('fighters_total', function (ItemInterface $item) {
+        $item->expiresAfter(3600);
+        return $this->fighterRepository->count([]);
+    });
+
+    // specific key for pagination
+    $key = sprintf('fighters_p%d_pp%d', $page, $perPage);
+
+    $fighters = $this->cache->get($key, function (ItemInterface $item) use ($perPage, $offset) {
+        $item->expiresAfter(3600);
+        return $this->fighterRepository->findBy([], ['id' => 'DESC'], $perPage, $offset);
+    });
+
+    return new JsonResponse([
+        'fighters'      => array_map(fn(Fighter $f) => $f->toArray(), $fighters),
+        'totalFighters' => $totalFighters,
+        'page'          => $page,
+        'perPage'       => $perPage,
+    ]);
+}
+
+    public function show(int $id)
     {
         $fighter = $this->cache->get('fighter_'.$id, function(ItemInterface $item) use ($id) {
             $item->expiresAfter(3600);
