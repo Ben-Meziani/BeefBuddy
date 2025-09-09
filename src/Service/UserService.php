@@ -6,17 +6,22 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 class UserService
 {
     public function __construct(
         private UserRepository $userRepository,
         private EntityManagerInterface $entityManager,
+        private CacheInterface $cache,
     ) {}
 
-    public function index($id)
+    public function index(int $id): JsonResponse
     {
-        $user = $this->userRepository->find($id);
+        $user = $this->cache->get('user_'.$id, function(ItemInterface $item) use ($id) {
+            $item->expiresAfter(3600);
+            return $this->userRepository->find($id);
+        });
 
         if (!$user) {
             return new JsonResponse(['error' => 'User not found'], 404);
@@ -31,9 +36,9 @@ class UserService
         ]);
     }
 
-    public function delete($id)
+    public function delete(int $id): JsonResponse
     {
-        $user = $this->entityManager->getRepository(User::class)->find($id);
+        $user = $this->userRepository->find($id);
         if (!$user) {
             return new JsonResponse(['error' => 'User not found'], 404);
         }
