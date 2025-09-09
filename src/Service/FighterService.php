@@ -115,12 +115,11 @@ class FighterService
 
     public function update(int $id, Request $request): JsonResponse
     {
-        // $fighter = $this->fighterRepository->find($id);
         $fighter = $this->cache->get('fighter_'.$id, function(ItemInterface $item) use ($id) {
             $item->expiresAfter(3600);
             return $this->fighterRepository->find($id);
         });
-        // dd($fighter);
+
         if (!$fighter) {
             throw new NotFoundHttpException(sprintf('No fighter found for id "%d"', $id));
         }
