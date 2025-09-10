@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1885c22f0eac8747d5f4fdac9d47d77d",
+    "content-hash": "d44a50c45198598cc24799e393ddde70",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -3625,6 +3625,79 @@
                 }
             ],
             "time": "2025-06-28T08:24:55+00:00"
+        },
+        {
+            "name": "symfony/json-path",
+            "version": "v7.3.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/json-path.git",
+                "reference": "059d3fa219d6c0637f17e01a2f51e1fc284702ef"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/json-path/zipball/059d3fa219d6c0637f17e01a2f51e1fc284702ef",
+                "reference": "059d3fa219d6c0637f17e01a2f51e1fc284702ef",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2",
+                "symfony/polyfill-ctype": "^1.8",
+                "symfony/polyfill-mbstring": "~1.0"
+            },
+            "conflict": {
+                "symfony/json-streamer": ">=7.4"
+            },
+            "require-dev": {
+                "symfony/json-streamer": "7.3.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\JsonPath\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alexandre Daubois",
+                    "email": "alex.daubois@gmail.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Eases JSON navigation using the JSONPath syntax as described in RFC 9535",
+            "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/json-path/tree/v7.3.2"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2025-07-29T15:02:23+00:00"
         },
         {
             "name": "symfony/mailer",

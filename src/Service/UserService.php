@@ -8,12 +8,19 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\JsonPath\JsonCrawler;
+
 class UserService
 {
     public function __construct(
         private UserRepository $userRepository,
         private EntityManagerInterface $entityManager,
         private CacheInterface $cache,
+        private SerializerInterface $serializer,
+        private EmailService $emailService,
     ) {}
 
     public function index(int $id): JsonResponse
@@ -24,7 +31,7 @@ class UserService
         });
 
         if (!$user) {
-            return new JsonResponse(['error' => 'User not found'], 404);
+            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
         return new JsonResponse([
@@ -40,10 +47,27 @@ class UserService
     {
         $user = $this->userRepository->find($id);
         if (!$user) {
-            return new JsonResponse(['error' => 'User not found'], 404);
+            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
         $this->entityManager->remove($user);
         $this->entityManager->flush();
-        return new JsonResponse(['message' => 'User deleted successfully'], 200);
+        return new JsonResponse(['message' => 'User deleted successfully'], Response::HTTP_OK);
+    }
+
+    public function update(int $id, Request $request, string $from, string $fromName): JsonResponse
+    {
+        $this->cache->delete('user_'.$id);
+        $user = $this->userRepository->find($id);
+        if (!$user) {
+            return new JsonResponse(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+        }
+        $data = new JsonCrawler($request->getContent());
+        $username = $data->find('$.params.params.username')[0];
+        $email = $data->find('$.params.params.email')[0];
+        $user->setUsername($username);
+        $user->setEmail($email);
+        $this->entityManager->flush();
+        $this->emailService->sendEmail($user, 'User updated successfully', 'update/user_updated.html.twig', [], $from, $fromName);
+        return new JsonResponse(['message' => 'User updated successfully'], Response::HTTP_OK);
     }
 }
