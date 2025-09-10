@@ -26,9 +26,8 @@ class HomeService
             return new JsonResponse(['error' => 'Token ou XSRF manquant'], 403);
         }
 
-        try {
-            $decoded = $this->jwtEncoder->decode($jwt);
-        } catch (\Exception $e) {
+        $decoded = $this->jwtEncoder->decode($jwt);
+        if (!$decoded) {
             return new JsonResponse(['error' => 'Token invalide'], 401);
         }
 
