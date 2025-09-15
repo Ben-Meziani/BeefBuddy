@@ -17,16 +17,16 @@ class UserControllerTest extends WebTestCase
         $this->assertEquals('Token ou XSRF manquant', $responseData['error']);
     }
 
-    public function testCreateUser(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/home');
+    // public function testCreateUser(): void
+    // {
+    //     $client = static::createClient();
+    //     $client->request('GET', '/home');
 
-        $this->assertResponseStatusCodeSame(403); // Expected 403 due to missing JWT token
-        $this->assertJson($client->getResponse()->getContent());
-        $responseData = json_decode($client->getResponse()->getContent(), true);
-        $this->assertEquals('Token ou XSRF manquant', $responseData['error']);
-    }
+    //     $this->assertResponseStatusCodeSame(403); // Expected 403 due to missing JWT token
+    //     $this->assertJson($client->getResponse()->getContent());
+    //     $responseData = json_decode($client->getResponse()->getContent(), true);
+    //     $this->assertEquals('Token ou XSRF manquant', $responseData['error']);
+    // }
 
     public function testGetUserInfoEndpointExists(): void
     {
@@ -72,4 +72,57 @@ class UserControllerTest extends WebTestCase
             $this->assertArrayHasKey('is_verified', $responseData);
         }
     }
+
+    public function testCreateUser(): void
+    {
+        $client = static::createClient();
+        $client->request('POST', '/register', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+        ], json_encode(['username' => 'testusevr', 'email' => 'tsest@example.com', 'password' => 'password']));
+        // dd($client->getResponse()->getContent());
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertJson($client->getResponse()->getContent());
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('Inscription réussie. Vérifiez votre email.', $responseData['message']);
+        $this->assertArrayHasKey('id', $responseData);
+        $this->assertArrayHasKey('username', $responseData);
+        $this->assertArrayHasKey('email', $responseData);
+        $this->assertArrayHasKey('roles', $responseData);
+        $this->assertArrayHasKey('is_verified', $responseData);
+
+        $this->deleteUser($responseData['id']);
+    }
+
+    public function testUpdateUser(): void
+    {
+        $client = static::createClient();
+        $client->request('PUT', '/user/1', [], [], [
+            'CONTENT_TYPE' => 'application/json',
+        // ], json_encode(['username' => 'testuser', 'email' => 'test@example.com']));
+        ], json_encode(['params' => ['params' => ['username' => 'testuser', 'email' => 'test@example.com']]]));
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertJson($client->getResponse()->getContent());
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('User updated successfully', $responseData['message']);
+    }
+
+    public function deleteUser($id): void
+    {
+        $client = static::createClient();
+        $client->request('DELETE', '/user/'.$id);
+        $this->assertResponseStatusCodeSame(200);
+        $this->assertJson($client->getResponse()->getContent());
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('User deleted successfully', $responseData['message']);
+    }
+
+    // public function testDeleteUser(): void
+    // {
+    //     $client = static::createClient();
+    //     $client->request('DELETE', '/user/'.$id);
+    //     $this->assertResponseStatusCodeSame(200);
+    //     $this->assertJson($client->getResponse()->getContent());
+    //     $responseData = json_decode($client->getResponse()->getContent(), true);
+    //     $this->assertEquals('User deleted successfully', $responseData['message']);
+    // }
 }

@@ -15,6 +15,14 @@
         <ini name="error_reporting" value="-1" />
         <server name="APP_ENV" value="test" force="true" />
         <server name="SHELL_VERBOSITY" value="-1" />
+        <env name="KERNEL_CLASS" value="App\Kernel" />
+        <env name="JWT_SECRET_KEY" value="test_secret_key" />
+        <env name="JWT_PUBLIC_KEY" value="test_public_key" />
+        <env name="JWT_PASSPHRASE" value="test_passphrase" />
+        <env name="MAIL_FROM" value="test@example.com" />
+        <env name="MAIL_FROM_NAME" value="Test App" />
+        <env name="HOST_FRONT" value="http://localhost" />
+        <env name="STRIPE_SECRET_KEY" value="sk_test_fake_key" />
     </php>
 
     <testsuites>
