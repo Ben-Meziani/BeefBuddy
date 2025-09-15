@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Service\ReservationService;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class PaymentService
 {
@@ -16,15 +17,16 @@ class PaymentService
         private EntityManagerInterface $entityManager,
         private ReservationService $reservationService,
         private SerializerInterface $serializer,
+        private ParameterBagInterface $params
     ) {}
 
-    public function checkout(Request $request, string $hostFront, string $stripeSecretKey, string $from, string $fromName)
+    public function checkout(Request $request)
     {
         $data = $this->serializer->deserialize($request->getContent(), CheckoutData::class, 'json');
         $amount = (int) $data->totalPrice*100;
         $fighter = $this->entityManager->getRepository(Fighter::class)->find($data->fighterId);
 
-        $stripe = new \Stripe\StripeClient($stripeSecretKey);
+        $stripe = new \Stripe\StripeClient($this->params->get('stripe_secret_key'));
 
         $session = $stripe->checkout->sessions->create([
             'mode' => 'payment',
@@ -36,15 +38,15 @@ class PaymentService
                 ],
                 'quantity' => 1,
             ]],
-            'success_url' => $hostFront . '/payment-success',
-            'cancel_url'  => $hostFront . '/payment-failed',
+            'success_url' => $this->params->get('host_front') . '/payment-success',
+            'cancel_url'  => $this->params->get('host_front') . '/payment-failed',
             'metadata' => [
                 'fighter_id' => $data->fighterId ?? null,
                 'user_id'    => null,
             ],
         ]);
         if($session->success_url) {
-            $this->reservationService->createReservation($request, $from, $fromName);
+            $this->reservationService->createReservation($request, $this->params->get('mail_from'), $this->params->get('mail_from_name'));
         }
 
         // Return the URL (or the ID if you prefer redirectToCheckout on the front)

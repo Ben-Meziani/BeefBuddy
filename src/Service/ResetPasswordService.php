@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class ResetPasswordService
 {
@@ -22,13 +23,11 @@ class ResetPasswordService
         private JWTEncoderInterface $jwtEncoder,
         private UserPasswordHasherInterface $passwordHasher,
         private SerializerInterface $serializer,
+        private ParameterBagInterface $params
     ) {}
 
     public function resetPassword(
         Request $request,
-        string $hostFront,
-        string $from,
-        string $fromName
         ): JsonResponse {
         $data = $this->serializer->deserialize($request->getContent(), ResetPasswordData::class, 'json');
         $user = $this->entityManager->getRepository(User::class)->findOneBy([
@@ -41,7 +40,7 @@ class ResetPasswordService
                 'exp' => (new \DateTimeImmutable('+10 minutes'))->getTimestamp(),
             ];
             $token = $this->jwtManager->createFromPayload($user, $payload);
-            $url = $hostFront . '/reset-password-form?token=' . $token;
+            $url = $this->params->get('host_front') . '/reset-password-form?token=' . $token;
 
             $this->emailService->sendEmail(
                 $user,
@@ -51,8 +50,8 @@ class ResetPasswordService
                     'resetPasswordUrl' => $url,
                     'user' => $user,
                 ],
-                $from,
-                $fromName
+                $this->params->get('mail_from'),
+                $this->params->get('mail_from_name')
             );
         }
         return new JsonResponse([

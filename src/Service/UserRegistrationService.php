@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -19,8 +20,9 @@ class UserRegistrationService
         private JWTTokenManagerInterface $jwtManager,
         private EmailService $emailService,
         private SerializerInterface $serializer,
+        private ParameterBagInterface $params
     ) {}
-    public function register(Request $request, string $hostFront, string $from, string $fromName)
+    public function register(Request $request)
     {
         $data = $this->serializer->deserialize(
             $request->getContent(),
@@ -44,7 +46,8 @@ class UserRegistrationService
         // actually executes the queries (i.e. the INSERT query)
         $this->entityManager->flush();
         $token = $this->jwtManager->create($user);
-        $url = $hostFront . '/login?token=' . $token;
+        // $url = $hostFront . '/login?token=' . $token;
+        $url = $this->params->get('host_front') . '/login?token=' . $token;
         $this->emailService->sendEmail(
             $user,
             'Please Confirm your Email',
@@ -53,8 +56,8 @@ class UserRegistrationService
             'confirmationUrl' => $url,
             'user' => $user,
             ],
-            $from,
-            $fromName
+            $this->params->get('mail_from'),
+            $this->params->get('mail_from_name')
         );
         return new JsonResponse(['message' => 'Registration successful. Please check your email to verify your account.'], 200);
     }
