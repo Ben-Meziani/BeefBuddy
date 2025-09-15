@@ -41,7 +41,7 @@ class UserController extends AbstractController
     public function update($id, Request $request)
     {
         try{
-            return $this->userService->update($id, $request, $this->getParameter('mail_from'), $this->getParameter('mail_from_name'));
+            return $this->userService->update($id, $request);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }

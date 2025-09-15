@@ -8,13 +8,14 @@ use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class EmailService
 {
     public function __construct(
         private MailerInterface $mailer,
-        private EmailVerifier $emailVerifier
+        private EmailVerifier $emailVerifier,
+        private ParameterBagInterface $params
     )
     {
 
@@ -25,15 +26,13 @@ class EmailService
         string $subject,
         string $template,
         array $context,
-        string $from,
-        string $fromName
     ): void
     {
         $this->emailVerifier->sendEmailConfirmation(
             'app_verify_email',
             $user,
             (new TemplatedEmail())
-                ->from(new Address($from, $fromName))
+                ->from(new Address($this->params->get('mail_from'), $this->params->get('mail_from_name')))
                 ->to($user->getEmail())
                 ->subject($subject)
                 ->htmlTemplate($template)

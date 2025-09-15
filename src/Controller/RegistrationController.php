@@ -26,7 +26,7 @@ final class RegistrationController extends AbstractController
     public function register(Request $request): JsonResponse
     {
         try {
-            $this->registrationService->register($request, $this->getParameter('host_front'), $this->getParameter('mail_from'), $this->getParameter('mail_from_name'));
+            $this->registrationService->register($request);
             return new JsonResponse(['message' => 'Inscription réussie. Vérifiez votre email.'], 200);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 400);

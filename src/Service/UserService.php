@@ -54,7 +54,7 @@ class UserService
         return new JsonResponse(['message' => 'User deleted successfully'], Response::HTTP_OK);
     }
 
-    public function update(int $id, Request $request, string $from, string $fromName): JsonResponse
+    public function update(int $id, Request $request): JsonResponse
     {
         $this->cache->delete('user_'.$id);
         $user = $this->userRepository->find($id);
@@ -67,7 +67,7 @@ class UserService
         $user->setUsername($username);
         $user->setEmail($email);
         $this->entityManager->flush();
-        $this->emailService->sendEmail($user, 'User updated successfully', 'update/user_updated.html.twig', [], $from, $fromName);
+        $this->emailService->sendEmail($user, 'User updated successfully', 'update/user_updated.html.twig', []);
         return new JsonResponse(['message' => 'User updated successfully'], Response::HTTP_OK);
     }
 }
