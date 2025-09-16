@@ -36,11 +36,11 @@ class FighterRepositoryTest extends KernelTestCase
         ]);
     }
 
-    // public function testDeleteFighter(): void
-    // {
-    //     $this->databaseTool->loadFixtures([
-    //         FighterFixtures::class,
-    //     ]);
-    // }
+    public function testDeleteFighter(): void
+    {
+        $this->databaseTool->loadFixtures([
+            FighterFixtures::class,
+        ]);
+    }
 
 }
