@@ -27,7 +27,7 @@ class UserRepositoryTest extends KernelTestCase
         $entityManager = static::getContainer()->get('doctrine')->getManager();
 
         $users = $entityManager->getRepository(\App\Entity\User::class)->findAll();
-        $this->assertCount(10, $users); // dépend de ce que met AppFixtures
+        $this->assertCount(10, $users);
     }
 
     public function testUpdateUser(): void
