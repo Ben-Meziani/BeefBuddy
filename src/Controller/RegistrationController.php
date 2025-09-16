@@ -30,9 +30,7 @@ final class RegistrationController extends AbstractController
             return new JsonResponse(['message' => 'Inscription réussie. Vérifiez votre email.'], 200);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 400);
-        } catch (\Exception $e) {
-            return new JsonResponse(['error' => 'Erreur interne.'], 500);
-        }
+        } 
     }
 
     //TODO: Remove if not needed
