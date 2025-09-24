@@ -14,7 +14,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
-
+use App\Service\EmailService;
 class FighterService
 {
     public function __construct(
@@ -22,6 +22,7 @@ class FighterService
         private SerializerInterface $serializer,
         private CacheInterface $cache,
         private FighterRepository $fighterRepository,
+        private EmailService $emailService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -89,6 +90,9 @@ class FighterService
         $fighter = new Fighter();
         $fighter->setName($data->name);
         $fighter->setNickname($data->nickname);
+        $fighter->setEmail($data->email);
+        $fighter->setPhone($data->phone);
+        $fighter->setPassword($data->password);
         $fighter->setDescription($data->description);
         $fighter->setWeightClass($data->weightClass);
         $fighter->setWins($data->wins);
@@ -110,6 +114,7 @@ class FighterService
 
         $this->entityManager->persist($fighter);
         $this->entityManager->flush();
+        $this->emailService->sendEmail($fighter->getEmail(), 'Fighter registered successfully');
         return new JsonResponse(['message' => 'Fighter registered successfully']);
     }
 

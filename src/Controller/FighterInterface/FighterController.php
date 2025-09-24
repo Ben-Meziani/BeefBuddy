@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\FighterInterface;
 
 use App\Entity\Fighter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -42,7 +42,7 @@ final class FighterController extends AbstractController
         }
     }
 
-    #[Route('/fighter', name: 'app_fighter_register', methods: ['POST'])]
+    #[Route('/register-fighter', name: 'app_fighter_register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
     {
         try{
